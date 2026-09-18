@@ -1,0 +1,2029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Terra Guard - X</title>
+  <link rel="icon" type="image/png" href="/logo.png">
+  <link rel="shortcut icon" type="image/png" href="/logo.png">
+  <link rel="apple-touch-icon" href="/logo.png">
+  <meta name="description" content="TERRA GUARD - X: Low-cost wireless surface mesh network, multiple sensor evidence fusion AI, 4D Digital Twin, and 4-colour early warning platform for land subsidence and geotechnical hazard monitoring. Smart India Hackathon 2026.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="stylesheet" href="/src/styles/index.css">
+</head>
+<body class="bg-dark text-light">
+
+  <!-- Top Navigation Header / Geotechnical Command Centre -->
+  <header class="navbar-header sonic-glass-panel">
+    <div class="brand-section">
+      <!-- Terra Guard - X Logo Core -->
+      <div class="sonic-logo-wrapper" id="brandLogo">
+        <div class="sonic-pulse-ring ring-1"></div>
+        <div class="sonic-pulse-ring ring-2"></div>
+        <div class="terra-logo-core">
+          <img src="/logo.png" alt="Terra Guard - X" class="brand-logo-image">
+        </div>
+      </div>
+
+      <div class="brand-text-block">
+        <div class="brand-title-wrap">
+          <h1 class="brand-title">TERRA GUARD - X</h1>
+          <span class="badge-sih">SIH 2026</span>
+          <span class="badge-team">Team: Recursion Rebels</span>
+          <span class="badge-cil">Geotechnical &amp; Disaster Safety</span>
+        </div>
+        <p class="brand-subtitle">
+          <span class="sonic-wave-dot"></span>
+          AI-Enabled Real-Time Land Subsidence Monitoring &amp; Early Warning Command Centre
+        </p>
+      </div>
+    </div>
+
+    <!-- Live Status Indicators -->
+    <div class="header-status-group">
+      <div class="status-pill status-online" id="meshStatusBadge" title="LoRa Mesh Network Health">
+        <span class="pulsing-dot green"></span>
+        <span class="status-text">Mesh: <strong id="headerMeshNodes">128 / 132</strong></span>
+      </div>
+      <div class="status-pill" id="riskLevelBadge" title="Global Geotechnical Threat Level">
+        <span class="pulsing-dot green" id="headerRiskDot"></span>
+        <span class="status-text">Status: <strong id="globalRiskText">🟢 NORMAL (18%)</strong></span>
+      </div>
+      <!-- Offline Mode & Cloud Sync Badge -->
+      <button class="status-pill status-online btn-sync-toggle" id="headerSyncBadge" title="Click to Toggle Offline Mode / Trigger Cloud Sync" style="cursor: pointer; border: none; background: rgba(14,23,43,0.85);">
+        <span class="pulsing-dot green" id="headerSyncDot"></span>
+        <span class="status-text" id="headerSyncText">Cloud: <strong>SYNCED</strong></span>
+      </button>
+      <!-- RBAC Role Badge -->
+      <div class="status-pill rbac-pill" title="Role-Based Access Control">
+        <i data-lucide="user-check" class="icon-xs text-accent"></i>
+        <select class="sonic-select-inline" id="rbacRoleSelect" style="background: transparent; border: none; color: #38bdf8; font-size: 0.72rem; font-weight: 700; cursor: pointer; outline: none;">
+          <option value="SAFETY_OFFICER" style="background:#0e172b; color:#fff;">Chief Safety Officer</option>
+          <option value="DGMS_INSPECTOR" style="background:#0e172b; color:#fff;">Geotechnical Auditor</option>
+          <option value="GEOTECH_ENG" style="background:#0e172b; color:#fff;">Geotechnical Engineer</option>
+          <option value="MINE_MANAGER" style="background:#0e172b; color:#fff;">Operations Lead</option>
+        </select>
+      </div>
+      <div class="status-pill clock-pill">
+        <i data-lucide="clock" class="icon-xs text-accent"></i>
+        <span class="time-text" id="liveClockDisplay">--:--:--</span>
+      </div>
+    </div>
+
+    <!-- Quick Action Controls -->
+    <div class="header-actions">
+      <button class="btn btn-outline" id="headerGeoJsonBtn" title="Export GIS GeoJSON Subsidence Boundaries">
+        <i data-lucide="map" class="icon-sm"></i>
+        <span>GeoJSON Export</span>
+      </button>
+      <button class="btn btn-outline" id="headerReportBtn" title="Generate Safety Assessment Report">
+        <i data-lucide="file-text" class="icon-sm"></i>
+        <span>Safety Report</span>
+      </button>
+      <button class="btn btn-danger-pulse" id="emergencySosBtn" title="Trigger SOS Siren & Emergency Dispatch">
+        <i data-lucide="volume-2" class="icon-sm"></i>
+        <span>Emergency SOS</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- SIH 2026 Live Demo Controller (Collapsed/Clean) -->
+  <div class="demo-controller-mount-wrap" id="demoControllerMount" style="display: none; margin: 0 16px 12px 16px;">
+    <!-- Rendered via DemoController.js -->
+  </div>
+
+  <!-- Main App Layout with Streamlined Sidebar -->
+  <div class="app-layout">
+    
+    <!-- Sidebar Navigation: Streamlined Essential Modules -->
+    <aside class="app-sidebar sonic-glass-panel">
+      <nav class="nav-menu">
+        <div class="nav-section-label">COMMAND &amp; MONITORING</div>
+
+        <button class="nav-item active" data-tab="dashboard">
+          <div class="nav-icon-box"><i data-lucide="layout-dashboard" class="nav-icon"></i></div>
+          <span class="nav-label">Dashboard</span>
+        </button>
+
+        <button class="nav-item" data-tab="subsidence-model">
+          <div class="nav-icon-box"><i data-lucide="layers" class="nav-icon"></i></div>
+          <span class="nav-label">3D Subsidence Twin</span>
+          <span class="hotkey-badge">3D</span>
+        </button>
+
+        <button class="nav-item" data-tab="gis-map">
+          <div class="nav-icon-box"><i data-lucide="map" class="nav-icon"></i></div>
+          <span class="nav-label">GIS Coalfield Map</span>
+          <span class="sparkle-badge">MAP</span>
+        </button>
+
+        <div class="nav-section-label">SAFETY &amp; ACTIONS</div>
+
+        <button class="nav-item" data-tab="alerts">
+          <div class="nav-icon-box"><i data-lucide="bell" class="nav-icon"></i></div>
+          <span class="nav-label">Alerts &amp; Warnings</span>
+          <span class="alert-count-pill" id="sidebarAlertCount">1</span>
+        </button>
+
+        <button class="nav-item" data-tab="reports">
+          <div class="nav-icon-box"><i data-lucide="file-check" class="nav-icon"></i></div>
+          <span class="nav-label">Safety Reports</span>
+        </button>
+
+        <button class="nav-item" data-tab="settings">
+          <div class="nav-icon-box"><i data-lucide="settings" class="nav-icon"></i></div>
+          <span class="nav-label">Settings</span>
+        </button>
+      </nav>
+
+      <!-- Sidebar Bottom System Summary -->
+      <div class="sidebar-footer">
+        <div class="node-health-compact">
+          <div class="compact-row">
+            <span>Mesh Health</span>
+            <span class="text-accent font-mono">128 Nodes</span>
+          </div>
+          <div class="compact-bar-wrap">
+            <div class="compact-bar-fill" style="width: 98.7%;"></div>
+          </div>
+          <div class="compact-caption">98.7% Packet Success</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area with Tab Panes -->
+    <main class="app-main-content">
+
+      <!-- ============================================================ -->
+      <!-- PAGE 1: MAIN DASHBOARD (CLEAN & STREAMLINED) -->
+      <!-- ============================================================ -->
+      <section class="tab-pane active" id="tab-dashboard">
+        <div class="dashboard-page-container">
+
+          <!-- Top Status Cards (4 Key Metrics) -->
+          <div class="status-cards-grid">
+            <!-- Card 1: Overall Ground Status -->
+            <div class="metric-card risk-metric-card" id="dashRiskCard">
+              <div class="metric-header">
+                <span class="metric-title">GROUND STABILITY STATUS</span>
+                <span class="badge-status-level" id="dashRiskBadge">🟢 NORMAL</span>
+              </div>
+              <div class="metric-main">
+                <div class="metric-value-huge" id="dashRiskScore">18%</div>
+                <div class="metric-subtext">AI Risk Score &bull; Trend: <span id="dashRiskTrend" class="text-success">STABLE</span></div>
+              </div>
+              <div class="metric-footer-row">
+                <span>AI Confidence: <strong id="dashConfidence">96%</strong></span>
+                <span>Status: <strong>Active 24/7</strong></span>
+              </div>
+            </div>
+
+            <!-- Card 2: Wireless Mesh Network -->
+            <div class="metric-card">
+              <div class="metric-header">
+                <span class="metric-title">WIRELESS MESH NETWORK</span>
+                <span class="badge-status-level badge-green">ONLINE</span>
+              </div>
+              <div class="metric-main">
+                <div class="metric-value-huge text-accent" id="dashNodesOnline">128 <span class="unit-sm">/ 132</span></div>
+                <div class="metric-subtext">Nodes Online &bull; Network Health: <strong class="text-accent">97%</strong></div>
+              </div>
+              <div class="metric-footer-row">
+                <span>Gateway: <strong class="text-success">ONLINE</strong></span>
+                <span>Packet Success: <strong class="text-accent">98.7%</strong></span>
+              </div>
+            </div>
+
+            <!-- Card 3: Active Risk Zones -->
+            <div class="metric-card">
+              <div class="metric-header">
+                <span class="metric-title">GEOTECHNICAL RISK ZONES</span>
+                <span class="badge-status-level badge-purple">4 SECTORS</span>
+              </div>
+              <div class="metric-zones-breakdown">
+                <div class="zone-pill-item green"><span>Normal:</span> <strong id="dashZoneNormal">4</strong></div>
+                <div class="zone-pill-item yellow"><span>Caution:</span> <strong id="dashZoneCaution">0</strong></div>
+                <div class="zone-pill-item orange"><span>High Risk:</span> <strong id="dashZoneHigh">0</strong></div>
+                <div class="zone-pill-item red"><span>Critical:</span> <strong id="dashZoneCritical">0</strong></div>
+              </div>
+              <div class="metric-footer-row">
+                <span>Primary Monitored: <strong>Sector A17 (Perimeter Zone)</strong></span>
+              </div>
+            </div>
+
+            <!-- Card 4: Sensor Health -->
+            <div class="metric-card">
+              <div class="metric-header">
+                <span class="metric-title">SENSOR FLEET HEALTH</span>
+                <span class="badge-status-level badge-blue">132 TOTAL</span>
+              </div>
+              <div class="metric-zones-breakdown">
+                <div class="zone-pill-item green"><span>Online:</span> <strong id="dashHealthOnline">128</strong></div>
+                <div class="zone-pill-item yellow"><span>Warning:</span> <strong id="dashHealthWarn">3</strong></div>
+                <div class="zone-pill-item red"><span>Offline:</span> <strong id="dashHealthOff">1</strong></div>
+              </div>
+              <div class="metric-footer-row">
+                <span>Frequency: <strong>868.1 MHz LoRa</strong></span>
+                <span>Avg Battery: <strong>84%</strong></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Central Section: 4D DIGITAL TWIN -->
+          <div class="dashboard-central-twin sonic-glass-panel">
+            <div class="panel-toolbar">
+              <div class="panel-heading">
+                <i data-lucide="box" class="icon-sm text-accent"></i>
+                <h3>4D GEOLOGICAL DIGITAL TWIN: SURFACE &amp; SUB-SURFACE STRATA</h3>
+                <span class="badge-live-stream">● LIVE SPATIAL 3D</span>
+              </div>
+              <div class="twin-toolbar-actions">
+                <button class="btn btn-xs btn-outline" id="btnDashResetView"><i data-lucide="rotate-ccw" class="icon-xs"></i> Reset View</button>
+                <button class="btn btn-xs btn-outline" id="btnDashAutoRotate"><i data-lucide="play" class="icon-xs"></i> Auto Orbit</button>
+                <button class="btn btn-xs btn-primary" id="btnDashOpenFullTwin"><i data-lucide="maximize-2" class="icon-xs"></i> Full 4D View</button>
+              </div>
+            </div>
+
+            <!-- 3D Three.js Container -->
+            <div class="dash-3d-viewport" id="dashThreeContainer">
+              <!-- Three.js Canvas mounts here -->
+            </div>
+
+            <!-- Integrated 4D Time Slider -->
+            <div class="twin-time-slider-bar">
+              <div class="time-slider-meta">
+                <span class="time-stage past">Historical (-24h)</span>
+                <span class="time-stage now active" id="dashTimeSliderLabel">CURRENT (NOW)</span>
+                <span class="time-stage future">AI Prediction (+24h)</span>
+              </div>
+              <input type="range" class="sonic-range-slider" id="dashTimeSlider" min="0" max="100" value="50" step="1">
+              <div class="time-slider-ticks">
+                <span>-24h</span><span>-12h</span><span>-6h</span><span class="now-tick">NOW</span><span>+6h</span><span>+12h</span><span>+24h</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Section: 3 Core Panels -->
+          <div class="dashboard-bottom-grid">
+
+            <!-- Panel 1: Multi-Sensor Evidence Fusion -->
+            <div class="bottom-panel sonic-glass-panel">
+              <div class="panel-heading">
+                <i data-lucide="git-merge" class="icon-sm text-purple"></i>
+                <h3>MULTI-SENSOR EVIDENCE FUSION</h3>
+              </div>
+              <p class="panel-sub-desc">AI combines evidence across 5 sensor categories for fault-tolerant risk classification.</p>
+              
+              <div class="fusion-chart-container">
+                <canvas id="dashFusionChart"></canvas>
+              </div>
+
+              <div class="fusion-agreement-banner" id="dashAgreementBanner">
+                <div class="agreement-icon"><i data-lucide="shield-check" class="icon-sm"></i></div>
+                <div class="agreement-text">
+                  <strong id="dashAgreementText">4 out of 5 sensor categories show normal behaviour</strong>
+                  <span class="agreement-sub">Cross-sensor correlation index: <strong>0.91 Nominal</strong></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Panel 2: Risk Analysis -->
+            <div class="bottom-panel sonic-glass-panel">
+              <div class="panel-heading">
+                <i data-lucide="brain-circuit" class="icon-sm text-accent"></i>
+                <h3>AI GEOTECHNICAL RISK ANALYSIS</h3>
+              </div>
+              <p class="panel-sub-desc">Continuous Bayesian evaluation over terrain and infrastructure sectors.</p>
+
+              <div class="risk-summary-box">
+                <div class="risk-score-display">
+                  <div class="risk-circle-gauge" id="dashRiskGaugeCircle">
+                    <span class="gauge-number" id="dashRiskGaugeVal">18%</span>
+                    <span class="gauge-label">RISK</span>
+                  </div>
+                  <div class="risk-details-col">
+                    <div class="risk-stat-row"><span>Classification:</span> <strong id="dashRiskClassText" class="text-success">🟢 NORMAL</strong></div>
+                    <div class="risk-stat-row"><span>AI Confidence:</span> <strong id="dashConfidenceText">96%</strong></div>
+                    <div class="risk-stat-row"><span>Progression Trend:</span> <strong id="dashTrendText" class="text-success">STABLE</strong></div>
+                    <div class="risk-stat-row"><span>Target Sector:</span> <strong id="dashZoneTarget">Sector A17</strong></div>
+                  </div>
+                </div>
+
+                <div class="risk-forecast-quick">
+                  <span class="forecast-label">Subsidence Forecast (24h):</span>
+                  <strong class="forecast-value text-accent" id="dashForecastVal">1.5 mm (Normal)</strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- Panel 3: Active Alerts -->
+            <div class="bottom-panel sonic-glass-panel">
+              <div class="panel-heading">
+                <i data-lucide="bell" class="icon-sm text-red"></i>
+                <h3>ACTIVE HAZARD ALERTS</h3>
+                <span class="badge-alert-count" id="dashAlertsBadge">1 Active</span>
+              </div>
+              <p class="panel-sub-desc">Four-colour graded early warning queue.</p>
+
+              <div class="alerts-feed-list" id="dashAlertsFeed">
+                <!-- Injected via JavaScript -->
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Bottom Full-Width Explainable AI Card -->
+          <div class="explainable-ai-card sonic-glass-panel mt-4" id="dashExplainableAiCard">
+            <div class="ai-card-header">
+              <div class="ai-header-left">
+                <div class="ai-chip-icon"><i data-lucide="sparkles" class="icon-sm"></i></div>
+                <div>
+                  <h4 class="ai-card-title">EXPLAINABLE AI RISK INSIGHT</h4>
+                  <span class="ai-card-sub">Multi-Sensor Bayesian Reasoning &bull; Autonomous Geotechnical Safety Advisory</span>
+                </div>
+              </div>
+              <div class="ai-header-right">
+                <span class="ai-confidence-pill">AI Confidence: <strong id="dashAiConfidencePill">96%</strong></span>
+              </div>
+            </div>
+            <div class="ai-card-body">
+              <p class="ai-insight-paragraph" id="dashAiInsightText">
+                Current sensor evidence indicates stable ground behaviour across all monitored sectors. Baseline micro-strain and tilt remain within expected geomechanical tolerance limits. No significant deformation pattern detected.
+              </p>
+              <div class="ai-recommendation-row">
+                <span class="rec-label">Recommended Action:</span>
+                <strong class="rec-text" id="dashAiActionText">Continue routine 24/7 automated mesh monitoring.</strong>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- PAGE 2: SUBSIDENCE PHYSICAL PROTOTYPE MODEL & STRATA TWIN -->
+      <!-- ============================================================ -->
+      <section class="tab-pane" id="tab-subsidence-model">
+        <div class="subsidence-model-page-container">
+          <!-- Page Header & Top Interactive Toolbar -->
+          <div class="page-header-box sonic-glass-panel">
+            <div class="header-titles">
+              <div class="model-title-wrap">
+                <i data-lucide="layers" class="icon-md text-accent"></i>
+                <div>
+                  <h2 class="page-title">REAL-TIME SURFACE SUBSIDENCE &amp; STRATA MONITORING SYSTEM</h2>
+                  <p class="page-subtitle">&ldquo;Safer Communities &bull; Resilient Infrastructure &bull; A Stronger Tomorrow&rdquo; &bull; 3 Geological Strata Layers &bull; 4-Colour Interlock Signals</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Quick State & Interlock Controls -->
+            <div class="model-toolbar-controls">
+              <!-- Manual 4-Colour Hazard Signal Mode Buttons -->
+              <div class="threat-button-group" title="Trigger 4-Color Safety Signal & Automatic Vehicle Stop">
+                <button class="btn-threat-signal btn-sig-green active" id="btnModelSigGreen" data-tier="1" title="Green: Safe - Traffic Moving">
+                  <span class="sig-dot green"></span> Green (Safe)
+                </button>
+                <button class="btn-threat-signal btn-sig-yellow" id="btnModelSigYellow" data-tier="2" title="Yellow: Warning Advisory - Traffic Halted & Buzzer">
+                  <span class="sig-dot yellow"></span> Yellow (Warning)
+                </button>
+                <button class="btn-threat-signal btn-sig-orange" id="btnModelSigOrange" data-tier="3" title="Orange: Danger Zone - Traffic Halted & Alarm">
+                  <span class="sig-dot orange"></span> Orange (Danger)
+                </button>
+                <button class="btn-threat-signal btn-sig-red" id="btnModelSigRed" data-tier="4" title="Red: Critical Evacuation - Traffic Halted & Siren">
+                  <span class="sig-dot red"></span> Red (Critical)
+                </button>
+              </div>
+
+              <!-- Audio & Feature Toggles -->
+              <div class="model-toggles-group">
+                <button class="btn btn-xs btn-outline" id="btnModelAudioToggle" title="Mute / Unmute Buzzer Siren Audio">
+                  <i data-lucide="volume-2" class="icon-xs text-accent"></i>
+                  <span id="modelAudioToggleText">Buzzer: ON</span>
+                </button>
+                <button class="btn btn-xs btn-outline" id="btnModelTrafficToggle" title="Toggle Car and Train Movement">
+                  <i data-lucide="truck" class="icon-xs text-yellow"></i>
+                  <span id="modelTrafficToggleText">Traffic: AUTO</span>
+                </button>
+                <button class="btn btn-xs btn-outline" id="btnModelMinerToggle" title="Toggle Subsurface Stress Displacement">
+                  <i data-lucide="activity" class="icon-xs text-orange"></i>
+                  <span id="modelMinerToggleText">Deformation: ACTIVE</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Main Layout: 2 Columns (Diorama Canvas on Left/Center, Statutory & Environmental Panel on Right) -->
+          <div class="subsidence-model-grid-layout mt-3">
+            
+            <!-- Left/Center: Interactive Prototype Canvas -->
+            <div class="model-canvas-column sonic-glass-panel">
+              <div class="canvas-header-bar">
+                <div class="canvas-tag">
+                  <span class="pulsing-dot green"></span>
+                  <strong>PROTOTYPE MODEL VIEW</strong>: Surface Infrastructure, Settlement Area &amp; Subsurface Strata Cutaway
+                </div>
+                <div class="canvas-sinkage-slider-wrap">
+                  <span class="slider-label">Subsidence Depth:</span>
+                  <input type="range" class="sonic-range-slider" id="modelSinkageSlider" min="0" max="30" value="14" step="1">
+                  <strong class="slider-val text-accent" id="modelSinkageSliderVal">14.0 mm</strong>
+                </div>
+              </div>
+
+              <!-- Canvas Viewport -->
+              <div class="prototype-canvas-holder">
+                <canvas id="subsidenceModelCanvas" style="width: 100%; height: 530px; display: block;"></canvas>
+              </div>
+
+              <!-- Canvas Bottom Legend -->
+              <div class="prototype-legend-bar">
+                <div class="legend-item"><span class="leg-box leg-vib"></span> Vibration Sensor</div>
+                <div class="legend-item"><span class="leg-box leg-gps"></span> GPS/GNSS Displacement</div>
+                <div class="legend-item"><span class="leg-box leg-central"></span> Central IoT Solar Node</div>
+                <div class="legend-item"><span class="leg-box leg-tilt"></span> Tilt Inclinometer</div>
+                <div class="legend-item"><span class="leg-box leg-weather"></span> Weather Station</div>
+                <div class="legend-item"><span class="leg-box leg-sig"></span> 4-Colour Signal Tower</div>
+                <div class="legend-item"><span class="leg-box leg-miner"></span> Subsurface Fault Zone</div>
+              </div>
+            </div>
+
+            <!-- Right Column: Statutory, Environmental & Telemetry Insight Panel -->
+            <div class="model-info-column sonic-glass-panel">
+              
+              <!-- User-Specified Statement Card -->
+              <div class="impact-statement-card">
+                <div class="impact-card-hdr">
+                  <i data-lucide="shield-alert" class="icon-sm text-yellow"></i>
+                  <h4>SURFACE SUBSIDENCE &amp; COMMUNITY SAFETY</h4>
+                </div>
+                <p class="impact-card-text">
+                  Land subsidence and ground instability pose significant risks to nearby communities, critical infrastructure, agricultural zones, forest ecosystems, and surrounding habitats. Uncontrolled ground strata deformation threatens residential dwellings, railway corridors, transport highways, and regional groundwater aquifers.
+                </p>
+                <div class="impact-tags-row">
+                  <span class="imp-tag">🏘️ Communities Protected</span>
+                  <span class="imp-tag">🚂 Rail Lines Safe</span>
+                  <span class="imp-tag">🌾 Farmland Preserved</span>
+                  <span class="imp-tag">🌳 Forest Safe</span>
+                </div>
+              </div>
+
+              <!-- Live Interlock & Traffic Safety HUD -->
+              <div class="safety-interlock-card mt-3">
+                <div class="panel-heading">
+                  <i data-lucide="radio" class="icon-xs text-accent"></i>
+                  <h3>AUTOMATIC INTERLOCK &amp; SIGNALS</h3>
+                </div>
+                <div class="interlock-status-display mt-2" id="modelInterlockStatusBox">
+                  <div class="interlock-row">
+                    <span>Hazard Signal:</span>
+                    <strong class="text-success" id="modelSignalStatusText">🟢 GREEN (SAFE)</strong>
+                  </div>
+                  <div class="interlock-row">
+                    <span>Moving Traffic (Car &amp; Train):</span>
+                    <strong class="text-success" id="modelTrafficStatusText">RUNNING NORMALLY</strong>
+                  </div>
+                  <div class="interlock-row">
+                    <span>Audio Buzzer / Siren:</span>
+                    <strong class="text-accent" id="modelBuzzerStatusText">STANDBY (MUTED)</strong>
+                  </div>
+                  <div class="interlock-row">
+                    <span>Safety Action Status:</span>
+                    <strong class="text-accent" id="modelDgmsActionText">Normal Continuous Monitoring</strong>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Live Telemetry Readout Grid -->
+              <div class="model-telemetry-card mt-3">
+                <div class="panel-heading">
+                  <i data-lucide="cpu" class="icon-xs text-purple"></i>
+                  <h3>HARDWARE SENSOR TELEMETRY</h3>
+                </div>
+                <div class="model-telemetry-grid mt-2">
+                  <div class="tel-stat-item">
+                    <span>Displacement (GNSS)</span>
+                    <strong class="text-accent" id="modelTelDisp">12.4 mm</strong>
+                  </div>
+                  <div class="tel-stat-item">
+                    <span>Tilt Angle (MPU)</span>
+                    <strong class="text-yellow" id="modelTelTilt">4.8°</strong>
+                  </div>
+                  <div class="tel-stat-item">
+                    <span>Micro-Vibration</span>
+                    <strong class="text-orange" id="modelTelVib">6.2 mm/s</strong>
+                  </div>
+                  <div class="tel-stat-item">
+                    <span>Crack Aperture</span>
+                    <strong class="text-red" id="modelTelCrack">5.8 mm</strong>
+                  </div>
+                  <div class="tel-stat-item">
+                    <span>Tensile Strain</span>
+                    <strong class="text-accent" id="modelTelStrain">840 µε</strong>
+                  </div>
+                  <div class="tel-stat-item">
+                    <span>Solar Battery</span>
+                    <strong class="text-success" id="modelTelBatt">94% (LiPo)</strong>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Statutory Standards Reference -->
+              <div class="statutory-ref-card mt-3">
+                <div class="ref-hdr"><i data-lucide="book-open" class="icon-xxs text-accent"></i><strong>Geotechnical Compliance &amp; Safety Standards</strong></div>
+                <ul class="ref-list mt-1">
+                  <li>&bull; <strong>Geotechnical Hazard Regulations:</strong> Mandatory surface safety buffer</li>
+                  <li>&bull; <strong>Angular Distortion Standard:</strong> 45° statutory angle of draw</li>
+                  <li>&bull; <strong>Continuous LoRa Telemetry:</strong> &lt; ₹1,800/node indigenous BOM</li>
+                </ul>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- PAGE 3: GIS GEOSPATIAL SATELLITE MAP & GROUND RISK -->
+      <!-- ============================================================ -->
+      <section class="tab-pane" id="tab-gis-map">
+        <div class="gis-page-container">
+          <!-- GIS Page Header & Top Toolbar -->
+          <div class="page-header-box sonic-glass-panel">
+            <div class="header-titles">
+              <div class="model-title-wrap">
+                <i data-lucide="map" class="icon-md text-accent"></i>
+                <div>
+                  <h2 class="page-title">GIS GEOSPATIAL SATELLITE MAP &amp; GROUND RISK</h2>
+                  <p class="page-subtitle">High-Resolution Satellite View &bull; Geological Hazard Sectors &bull; Safety Draw Buffers &bull; 132 LoRa Mesh Nodes</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- GIS Controls Bar -->
+            <div class="gis-header-controls">
+              <!-- Region Selector -->
+              <div class="gis-ctrl-item">
+                <label>Region:</label>
+                <select class="sonic-select" id="gisCoalfieldSelect">
+                  <option value="raniganj" selected>Raniganj Geological Survey Region (West Bengal)</option>
+                  <option value="jharia">Jharia Ground Stability Sector (Jharkhand)</option>
+                  <option value="korba">Korba Geotechnical Region (Chhattisgarh)</option>
+                  <option value="singrauli">Singrauli Infrastructure Perimeter (MP/UP)</option>
+                  <option value="bokaro">Bokaro Terrain Monitoring Sector (Jharkhand)</option>
+                </select>
+              </div>
+
+              <!-- Basemap Selector -->
+              <div class="gis-ctrl-item">
+                <label>Basemap:</label>
+                <select class="sonic-select" id="gisBasemapSelect">
+                  <option value="satellite" selected>🛰️ Satellite Imagery</option>
+                  <option value="osm">🗺️ OpenStreetMap</option>
+                  <option value="topo">⛰️ Topographic Relief</option>
+                  <option value="dark">🌃 Dark Matter</option>
+                </select>
+              </div>
+
+              <!-- Actions -->
+              <div class="gis-ctrl-buttons">
+                <button class="btn btn-xs btn-primary" id="btnGisCenterPanel"><i data-lucide="crosshair" class="icon-xxs"></i> Center Sector A17</button>
+                <button class="btn btn-xs btn-outline" id="btnGisExportGeoJson"><i data-lucide="download" class="icon-xxs"></i> Export GeoJSON</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Main GIS Viewport Card -->
+          <div class="gis-map-card sonic-glass-panel mt-3">
+            <!-- Overlay Layer Toggles Bar -->
+            <div class="gis-layer-toggles-bar">
+              <span class="toggle-group-label"><i data-lucide="layers" class="icon-xxs"></i> MAP LAYERS:</span>
+              
+              <label class="gis-chk-label">
+                <input type="checkbox" id="gisLayerPanels" checked>
+                <span>🗺️ Hazard Sectors</span>
+              </label>
+
+              <label class="gis-chk-label">
+                <input type="checkbox" id="gisLayerHeatmap" checked>
+                <span>🔴 Subsidence Heatmap</span>
+              </label>
+
+              <label class="gis-chk-label">
+                <input type="checkbox" id="gisLayerBuffer" checked>
+                <span>📐 Safety Buffer Zone</span>
+              </label>
+
+              <label class="gis-chk-label">
+                <input type="checkbox" id="gisLayerSensors" checked>
+                <span>📡 132 Sensor Nodes</span>
+              </label>
+
+              <label class="gis-chk-label">
+                <input type="checkbox" id="gisLayerInfra" checked>
+                <span>🚂 Railway &amp; Roads</span>
+              </label>
+
+              <label class="gis-chk-label">
+                <input type="checkbox" id="gisLayerSettlements" checked>
+                <span>🏘️ Village Settlements</span>
+              </label>
+            </div>
+
+            <!-- Leaflet Map Container -->
+            <div class="gis-leaflet-viewport" id="gisMapFullContainer" style="height: 560px; width: 100%; border-radius: 8px;"></div>
+
+            <!-- GIS Bottom Info Bar -->
+            <div class="gis-bottom-stat-strip">
+              <div class="gis-stat"><span>Coordinates:</span> <strong class="text-accent" id="gisCoordsDisplay">23.6845° N, 86.9532° E</strong></div>
+              <div class="gis-stat"><span>Active Sector:</span> <strong>Raniganj Region (Zone #4)</strong></div>
+              <div class="gis-stat"><span>Monitored Area:</span> <strong class="text-yellow">1.85 km²</strong></div>
+              <div class="gis-stat"><span>Critical Zone:</span> <strong class="text-red">245 m² (SE Azimuth)</strong></div>
+              <div class="gis-stat"><span>Safety Standard:</span> <strong class="text-success">PASS (Within Geotechnical Draw Limits)</strong></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- PAGE 4: 4D DIGITAL TWIN (Dedicated Full-Screen) -->
+      <!-- ============================================================ -->
+      <section class="tab-pane" id="tab-digital-twin">
+        <div class="digital-twin-page-layout">
+          
+          <!-- Left Controls Sidebar: Layers -->
+          <div class="twin-left-controls sonic-glass-panel">
+            <div class="panel-heading">
+              <i data-lucide="layers" class="icon-sm text-accent"></i>
+              <h3>LAYER CONTROLS</h3>
+            </div>
+            
+            <div class="layer-checkbox-group">
+              <label class="layer-item">
+                <input type="checkbox" id="layerSensorNodes" checked>
+                <span class="custom-chk"></span>
+                <span class="layer-name">Surface Sensor Nodes (132)</span>
+              </label>
+
+              <label class="layer-item">
+                <input type="checkbox" id="layerMeshConnections" checked>
+                <span class="custom-chk"></span>
+                <span class="layer-name">Wireless Mesh Connections</span>
+              </label>
+
+              <label class="layer-item">
+                <input type="checkbox" id="layerUndergroundPanels" checked>
+                <span class="custom-chk"></span>
+                <span class="layer-name">Underground Mine Panels</span>
+              </label>
+
+              <label class="layer-item">
+                <input type="checkbox" id="layerGroundDeformation" checked>
+                <span class="custom-chk"></span>
+                <span class="layer-name">Ground Deformation Mesh</span>
+              </label>
+
+              <label class="layer-item">
+                <input type="checkbox" id="layerMovementVectors" checked>
+                <span class="custom-chk"></span>
+                <span class="layer-name">Movement Vectors (3D Arrows)</span>
+              </label>
+
+              <label class="layer-item">
+                <input type="checkbox" id="layerRiskZones" checked>
+                <span class="custom-chk"></span>
+                <span class="layer-name">Risk Zones &amp; Heatmaps</span>
+              </label>
+
+              <label class="layer-item">
+                <input type="checkbox" id="layerCrackLocations" checked>
+                <span class="custom-chk"></span>
+                <span class="layer-name">Crack Locations &amp; Faults</span>
+              </label>
+
+              <label class="layer-item">
+                <input type="checkbox" id="layerPredictionLayer" checked>
+                <span class="custom-chk"></span>
+                <span class="layer-name">AI Prediction Forecast Layer</span>
+              </label>
+            </div>
+
+            <div class="view-camera-buttons">
+              <div class="preset-label text-xs text-muted mb-1 font-mono">3D CAMERA PRESETS:</div>
+              <div class="btn-group-row mb-1">
+                <button class="btn btn-xs btn-outline flex-1" id="btnTwinViewIso" title="Isometric Geotechnical Strata Cutaway View">🌐 Isometric</button>
+                <button class="btn btn-xs btn-outline flex-1" id="btnTwinViewUnderground" title="Subterranean Mining Gallery & Face">⛏️ Gallery</button>
+              </div>
+              <div class="btn-group-row mb-2">
+                <button class="btn btn-xs btn-outline flex-1" id="btnTwinViewSurface" title="Surface Topography & Infrastructure View">🛰️ Surface</button>
+                <button class="btn btn-xs btn-outline flex-1" id="btnTwinViewSection" title="Geotechnical Strata Cross-Section">🔬 Strata</button>
+              </div>
+              <button class="btn btn-xs btn-outline w-100 mb-2" id="btnTwinXRay"><i data-lucide="scan" class="icon-xxs"></i> X-Ray Strata: OFF</button>
+
+              <div class="btn-group-row">
+                <button class="btn btn-sm btn-outline flex-1" id="btnTwinZoomIn"><i data-lucide="zoom-in" class="icon-xs"></i> Zoom In</button>
+                <button class="btn btn-sm btn-outline flex-1" id="btnTwinZoomOut"><i data-lucide="zoom-out" class="icon-xs"></i> Zoom Out</button>
+              </div>
+              <button class="btn btn-sm btn-outline w-100 mt-2" id="btnTwinAutoOrbit"><i data-lucide="play" class="icon-xs"></i> Toggle 360° Orbit</button>
+              <button class="btn btn-sm btn-outline w-100 mt-1" id="btnTwinReset"><i data-lucide="rotate-ccw" class="icon-xs"></i> Reset Camera</button>
+            </div>
+
+            <div class="legend-box mt-3">
+              <div class="legend-title">4D STRATA LEGEND</div>
+              <div class="legend-row"><span class="color-dot" style="background:#38bdf8;"></span> Topsoil &amp; Siltstone</div>
+              <div class="legend-row"><span class="color-dot" style="background:#243e69;"></span> Sandstone Barrier</div>
+              <div class="legend-row"><span class="color-dot" style="background:#ff3b30;"></span> Longwall Panel A17 (185m)</div>
+              <div class="legend-row"><span class="color-dot" style="background:#a855f7;"></span> AI Predicted Horizon</div>
+            </div>
+          </div>
+
+          <!-- Central 3D Interactive Area -->
+          <div class="twin-main-view sonic-glass-panel">
+            <div class="twin-viewport" id="fullTwinContainer">
+              <!-- Three.js Canvas mounts here -->
+            </div>
+
+            <!-- Bottom Time Slider with Event Replay Speeds -->
+            <div class="twin-time-slider-bar full-page">
+              <div class="time-slider-meta">
+                <span class="time-stage past">Historical Condition (-24h)</span>
+                <span class="time-stage now active" id="fullTwinTimeLabel">CURRENT CONDITION (NOW)</span>
+                <span class="time-stage future">AI Predicted Future Condition (+24h)</span>
+                <!-- Replay Speed Multipliers -->
+                <div class="replay-speed-controls ml-auto" style="display:flex; gap:4px;">
+                  <button class="btn btn-xs btn-outline btn-replay-speed active" data-speed="1">1X</button>
+                  <button class="btn btn-xs btn-outline btn-replay-speed" data-speed="2">2X</button>
+                  <button class="btn btn-xs btn-outline btn-replay-speed" data-speed="5">5X</button>
+                  <button class="btn btn-xs btn-primary" id="btnTwinAutoReplay"><i data-lucide="play" class="icon-xxs"></i> Auto Replay</button>
+                </div>
+              </div>
+              <input type="range" class="sonic-range-slider" id="fullTwinTimeSlider" min="0" max="100" value="50" step="1">
+              <div class="time-slider-ticks">
+                <span>-24h (Historical)</span>
+                <span>-12h</span>
+                <span>-6h</span>
+                <span class="now-tick">NOW (Real-Time Telemetry)</span>
+                <span>+6h</span>
+                <span>+12h</span>
+                <span>+24h (AI Forecast)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right AI Analysis Summary -->
+          <div class="twin-right-summary sonic-glass-panel">
+            <div class="panel-heading">
+              <i data-lucide="sparkles" class="icon-sm text-purple"></i>
+              <h3>4D TWIN AI TELEMETRY</h3>
+            </div>
+
+            <div class="twin-telemetry-card">
+              <div class="telemetry-label">Active Monitored Zone</div>
+              <div class="telemetry-value-lg text-accent" id="twinActiveZoneText">Panel A17 (Longwall)</div>
+              <div class="telemetry-sub">Extraction Depth: 185m &bull; Seam #4</div>
+            </div>
+
+            <div class="twin-telemetry-card mt-3">
+              <div class="telemetry-label">Maximum Ground Displacement</div>
+              <div class="telemetry-value-huge text-red" id="twinDispValue">1.5 mm</div>
+              <div class="telemetry-sub">Baseline Limit: 4.2 mm</div>
+            </div>
+
+            <div class="twin-telemetry-card mt-3">
+              <div class="telemetry-label">Peak Surface Tilt</div>
+              <div class="telemetry-value-lg text-yellow" id="twinTiltValue">0.8°</div>
+              <div class="telemetry-sub">Baseline: 2.5° (Critical &gt; 4.5°)</div>
+            </div>
+
+            <div class="twin-telemetry-card mt-3">
+              <div class="telemetry-label">AI Forecast Trajectory (24h)</div>
+              <div class="telemetry-value-lg text-purple" id="twinForecastValue">31.6 mm</div>
+              <div class="telemetry-sub">Model Confidence: <strong>94%</strong></div>
+            </div>
+
+            <div class="twin-ai-box mt-3">
+              <div class="ai-box-title">STRATA INTERPRETATION</div>
+              <p class="ai-box-desc" id="twinAiDesc">
+                Visualizing spatial convergence between surface sensor mesh and subterranean extraction face.
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- PAGE 3: WIRELESS SURFACE MESH NETWORK -->
+      <!-- ============================================================ -->
+      <section class="tab-pane" id="tab-mesh-network">
+        <div class="mesh-page-layout">
+          <div class="mesh-page-header sonic-glass-panel">
+            <div class="header-titles">
+              <h2 class="page-title">WIRELESS SURFACE MESH NETWORK &amp; ANALYTICS</h2>
+              <p class="page-subtitle">Real-Time Surface Deformation Infrastructure &bull; Dynamic Self-Healing LoRa Mesh 868.1 MHz</p>
+            </div>
+            <div class="network-quick-stats">
+              <div class="stat-pill"><span class="lbl">Nodes Online:</span> <strong class="val text-success" id="meshStatOnline">128 / 132</strong></div>
+              <div class="stat-pill"><span class="lbl">Coverage:</span> <strong class="val text-accent">4.2 km²</strong></div>
+              <div class="stat-pill"><span class="lbl">Packet Success:</span> <strong class="val text-success">98.7%</strong></div>
+              <div class="stat-pill"><span class="lbl">Gateway:</span> <strong class="val text-accent">GW-01 ACTIVE</strong></div>
+            </div>
+          </div>
+
+          <!-- Mount: Network Analytics & Mesh Self-Healing Controller -->
+          <div class="mt-4" id="meshNetworkAnalyticsMount"></div>
+
+          <!-- Mount: Central Gateway Health Monitor -->
+          <div class="mt-4" id="meshGatewayHealthMount"></div>
+
+          <div class="mesh-page-body mt-4">
+            <!-- Central Mesh Canvas Visualizer -->
+            <div class="mesh-canvas-wrap sonic-glass-panel">
+              <div class="mesh-canvas-toolbar">
+                <div class="mesh-legend-row">
+                  <span class="legend-chip"><span class="dot green"></span> 🟢 Online (128)</span>
+                  <span class="legend-chip"><span class="dot yellow"></span> 🟡 Warning (3)</span>
+                  <span class="legend-chip"><span class="dot red"></span> 🔴 Offline (1)</span>
+                  <span class="legend-chip"><span class="dot cyan"></span> ◆ Gateway (GW-01)</span>
+                </div>
+                <div class="mesh-tool-buttons">
+                  <button class="btn btn-xs btn-outline" id="btnMeshCenter"><i data-lucide="crosshair" class="icon-xs"></i> Center View</button>
+                  <button class="btn btn-xs btn-outline" id="btnMeshPingAll"><i data-lucide="activity" class="icon-xs"></i> Ping All Nodes</button>
+                </div>
+              </div>
+
+              <div class="canvas-holder">
+                <canvas id="meshTopologyCanvas"></canvas>
+              </div>
+            </div>
+
+            <!-- Right Node Information Drawer -->
+            <div class="node-info-drawer sonic-glass-panel">
+              <div class="panel-heading">
+                <i data-lucide="cpu" class="icon-sm text-accent"></i>
+                <h3>NODE INFORMATION</h3>
+              </div>
+
+              <div class="node-info-content" id="nodeInfoContent">
+                <div class="node-id-badge" id="drawerNodeId">MSN-024</div>
+                <div class="node-zone-text" id="drawerNodeZone">Zone: Longwall Panel A17</div>
+                
+                <div class="node-field-list mt-3">
+                  <div class="node-field-row"><span>Connection Status:</span> <strong class="text-success" id="drawerNodeStatus">🟢 ONLINE</strong></div>
+                  <div class="node-field-row"><span>Battery Level:</span> <strong class="text-accent" id="drawerNodeBattery">82% (3.95V)</strong></div>
+                  <div class="node-field-row"><span>Signal Strength:</span> <strong class="text-accent" id="drawerNodeRssi">-72 dBm (Strong)</strong></div>
+                  <div class="node-field-row"><span>Mesh Hop Distance:</span> <strong id="drawerNodeHops">1 Hop to Gateway</strong></div>
+                  <div class="node-field-row"><span>Last Communication:</span> <strong id="drawerNodeLastSeen">Just Now</strong></div>
+                </div>
+
+                <div class="sensor-suite-box mt-3">
+                  <div class="suite-title">INTEGRATED SENSOR SUITE</div>
+                  <div class="sensor-check-list">
+                    <div class="sensor-check-item">
+                      <i data-lucide="check-circle" class="icon-xs text-success"></i>
+                      <span>Tilt Sensor:</span>
+                      <strong class="font-mono ml-auto" id="drawerSensorTilt">4.8°</strong>
+                    </div>
+                    <div class="sensor-check-item">
+                      <i data-lucide="check-circle" class="icon-xs text-success"></i>
+                      <span>Displacement Gauge:</span>
+                      <strong class="font-mono ml-auto" id="drawerSensorDisp">12.4 mm</strong>
+                    </div>
+                    <div class="sensor-check-item">
+                      <i data-lucide="check-circle" class="icon-xs text-success"></i>
+                      <span>Vibration Accelerometer:</span>
+                      <strong class="font-mono ml-auto" id="drawerSensorVib">6.2 mm/s</strong>
+                    </div>
+                    <div class="sensor-check-item">
+                      <i data-lucide="check-circle" class="icon-xs text-success"></i>
+                      <span>Crack Width Gauge:</span>
+                      <strong class="font-mono ml-auto" id="drawerSensorCrack">5.8 mm</strong>
+                    </div>
+                    <div class="sensor-check-item">
+                      <i data-lucide="check-circle" class="icon-xs text-success"></i>
+                      <span>Tensile Strain Gauge:</span>
+                      <strong class="font-mono ml-auto" id="drawerSensorStrain">840 µε</strong>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="node-actions-row mt-3">
+                  <button class="btn btn-sm btn-outline flex-1" id="btnDrawerCalibrate"><i data-lucide="sliders" class="icon-xs"></i> Calibrate</button>
+                  <button class="btn btn-sm btn-primary flex-1" id="btnDrawerInspect"><i data-lucide="search" class="icon-xs"></i> Diagnostics</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- PAGE 4: MULTI-SENSOR FUSION AI -->
+      <!-- ============================================================ -->
+      <section class="tab-pane" id="tab-sensor-fusion">
+        <div class="fusion-page-container">
+          <div class="page-header-box sonic-glass-panel">
+            <h2 class="page-title">MULTIPLE SENSOR EVIDENCE FUSION AI</h2>
+            <p class="page-subtitle">Cross-Sensor Correlation &amp; Bayesian Anomaly Aggregation Pipeline</p>
+          </div>
+
+          <!-- Visual AI Fusion Pipeline -->
+          <div class="fusion-pipeline-visual sonic-glass-panel">
+            <div class="pipeline-step">
+              <div class="step-circle"><i data-lucide="cpu" class="icon-sm"></i></div>
+              <span class="step-name">1. Multi-Sensors</span>
+              <span class="step-sub">Tilt &bull; Disp &bull; Strain &bull; Vib &bull; Crack</span>
+            </div>
+            <div class="pipeline-connector">&rarr;</div>
+            <div class="pipeline-step">
+              <div class="step-circle"><i data-lucide="filter" class="icon-sm"></i></div>
+              <span class="step-name">2. Sensor Processing</span>
+              <span class="step-sub">Kalman Filter &bull; Noise Rejection</span>
+            </div>
+            <div class="pipeline-connector">&rarr;</div>
+            <div class="pipeline-step">
+              <div class="step-circle"><i data-lucide="alert-circle" class="icon-sm"></i></div>
+              <span class="step-name">3. Anomaly Detection</span>
+              <span class="step-sub">Dynamic Baseline Thresholds</span>
+            </div>
+            <div class="pipeline-connector">&rarr;</div>
+            <div class="pipeline-step">
+              <div class="step-circle"><i data-lucide="git-merge" class="icon-sm"></i></div>
+              <span class="step-name">4. Cross-Correlation</span>
+              <span class="step-sub">Spatial &amp; Temporal Matching</span>
+            </div>
+            <div class="pipeline-connector">&rarr;</div>
+            <div class="pipeline-step active">
+              <div class="step-circle glow"><i data-lucide="brain" class="icon-sm"></i></div>
+              <span class="step-name">5. AI Evidence Fusion</span>
+              <span class="step-sub">Multi-Evidence Weighting</span>
+            </div>
+            <div class="pipeline-connector">&rarr;</div>
+            <div class="pipeline-step highlight">
+              <div class="step-circle red-glow"><i data-lucide="shield-alert" class="icon-sm"></i></div>
+              <span class="step-name">6. Early Warning</span>
+              <span class="step-sub">4-Colour Risk Classification</span>
+            </div>
+          </div>
+
+          <!-- 5 Sensor Parameter Cards -->
+          <div class="sensor-cards-grid mt-4">
+            <!-- Sensor 1: Tilt -->
+            <div class="sensor-param-card sonic-glass-panel">
+              <div class="param-header">
+                <span class="param-title">TILT / INCLINATION</span>
+                <span class="badge-status-level badge-red" id="fusionTiltStatus">ABNORMAL</span>
+              </div>
+              <div class="param-body">
+                <div class="param-value-row">
+                  <span class="lbl">Current:</span>
+                  <strong class="val text-yellow" id="fusionTiltVal">4.8°</strong>
+                </div>
+                <div class="param-value-row">
+                  <span class="lbl">Baseline:</span>
+                  <span class="val font-mono">2.5°</span>
+                </div>
+                <div class="param-value-row">
+                  <span class="lbl">Deviation:</span>
+                  <strong class="val text-red" id="fusionTiltDev">+92%</strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sensor 2: Displacement -->
+            <div class="sensor-param-card sonic-glass-panel">
+              <div class="param-header">
+                <span class="param-title">DISPLACEMENT GAUGE</span>
+                <span class="badge-status-level badge-red" id="fusionDispStatus">ABNORMAL</span>
+              </div>
+              <div class="param-body">
+                <div class="param-value-row">
+                  <span class="lbl">Current:</span>
+                  <strong class="val text-red" id="fusionDispVal">12.4 mm</strong>
+                </div>
+                <div class="param-value-row">
+                  <span class="lbl">Baseline:</span>
+                  <span class="val font-mono">4.2 mm</span>
+                </div>
+                <div class="param-value-row">
+                  <span class="lbl">Deviation:</span>
+                  <strong class="val text-red" id="fusionDispDev">+195%</strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sensor 3: Tensile Strain -->
+            <div class="sensor-param-card sonic-glass-panel">
+              <div class="param-header">
+                <span class="param-title">TENSILE STRAIN</span>
+                <span class="badge-status-level badge-red" id="fusionStrainStatus">ABNORMAL</span>
+              </div>
+              <div class="param-body">
+                <div class="param-value-row">
+                  <span class="lbl">Current:</span>
+                  <strong class="val text-purple" id="fusionStrainVal">840 µε</strong>
+                </div>
+                <div class="param-value-row">
+                  <span class="lbl">Baseline:</span>
+                  <span class="val font-mono">210 µε</span>
+                </div>
+                <div class="param-value-row">
+                  <span class="lbl">Deviation:</span>
+                  <strong class="val text-red" id="fusionStrainDev">+300%</strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sensor 4: Vibration -->
+            <div class="sensor-param-card sonic-glass-panel">
+              <div class="param-header">
+                <span class="param-title">MICRO-VIBRATION</span>
+                <span class="badge-status-level badge-red" id="fusionVibStatus">ABNORMAL</span>
+              </div>
+              <div class="param-body">
+                <div class="param-value-row">
+                  <span class="lbl">Current:</span>
+                  <strong class="val text-red" id="fusionVibVal">6.2 mm/s</strong>
+                </div>
+                <div class="param-value-row">
+                  <span class="lbl">Baseline:</span>
+                  <span class="val font-mono">1.1 mm/s</span>
+                </div>
+                <div class="param-value-row">
+                  <span class="lbl">Deviation:</span>
+                  <strong class="val text-red" id="fusionVibDev">+463%</strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sensor 5: Crack Opening -->
+            <div class="sensor-param-card sonic-glass-panel">
+              <div class="param-header">
+                <span class="param-title">CRACK APERTURE</span>
+                <span class="badge-status-level badge-red" id="fusionCrackStatus">ABNORMAL</span>
+              </div>
+              <div class="param-body">
+                <div class="param-value-row">
+                  <span class="lbl">Current:</span>
+                  <strong class="val text-red" id="fusionCrackVal">5.8 mm</strong>
+                </div>
+                <div class="param-value-row">
+                  <span class="lbl">Baseline:</span>
+                  <span class="val font-mono">0.5 mm</span>
+                </div>
+                <div class="param-value-row">
+                  <span class="lbl">Deviation:</span>
+                  <strong class="val text-red" id="fusionCrackDev">+1060%</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- AI Evidence Contribution & Cross-Sensor Agreement Row -->
+          <div class="fusion-details-grid mt-4">
+            <!-- Evidence Bars -->
+            <div class="fusion-card sonic-glass-panel">
+              <div class="panel-heading">
+                <i data-lucide="bar-chart-3" class="icon-sm text-accent"></i>
+                <h3>AI EVIDENCE CONTRIBUTION WEIGHTS</h3>
+              </div>
+              <div class="evidence-bars-list mt-3">
+                <div class="ev-item">
+                  <div class="ev-header"><span>Displacement</span> <strong>31%</strong></div>
+                  <div class="ev-bar-wrap"><div class="ev-bar-fill" style="width: 31%; background:#38bdf8;"></div></div>
+                </div>
+                <div class="ev-item">
+                  <div class="ev-header"><span>Tilt / Inclination</span> <strong>24%</strong></div>
+                  <div class="ev-bar-wrap"><div class="ev-bar-fill" style="width: 24%; background:#f59e0b;"></div></div>
+                </div>
+                <div class="ev-item">
+                  <div class="ev-header"><span>Tensile Strain</span> <strong>22%</strong></div>
+                  <div class="ev-bar-wrap"><div class="ev-bar-fill" style="width: 22%; background:#a855f7;"></div></div>
+                </div>
+                <div class="ev-item">
+                  <div class="ev-header"><span>Micro-Vibration</span> <strong>15%</strong></div>
+                  <div class="ev-bar-wrap"><div class="ev-bar-fill" style="width: 15%; background:#ef4444;"></div></div>
+                </div>
+                <div class="ev-item">
+                  <div class="ev-header"><span>Crack Aperture</span> <strong>8%</strong></div>
+                  <div class="ev-bar-wrap"><div class="ev-bar-fill" style="width: 8%; background:#ec4899;"></div></div>
+                           <!-- Fusion Result & Cross-Sensor Agreement -->
+            <div class="fusion-card sonic-glass-panel">
+              <div class="panel-heading">
+                <i data-lucide="check-check" class="icon-sm text-success"></i>
+                <h3>CROSS-SENSOR AGREEMENT &amp; FUSION OUTCOME</h3>
+              </div>
+              <div class="cross-agreement-box mt-3">
+                <div class="agree-headline">
+                  <span class="badge-agree-level badge-red" id="fusionAgreeBadge">HIGH AGREEMENT</span>
+                  <h4 id="fusionAgreeHeading">5 out of 5 sensor categories show abnormal behaviour</h4>
+                </div>
+                <p class="agree-desc mt-2">
+                  Multiple independent low-cost sensor modalities cross-validate that ground deformation is real and not a sensor malfunction or environmental artifact.
+                </p>
+                <div class="fusion-outcome-banner mt-3">
+                  <div class="outcome-col">
+                    <span class="lbl">FUSED RISK SCORE:</span>
+                    <strong class="val text-red" id="fusionOutcomeScore">87%</strong>
+                  </div>
+                  <div class="outcome-col">
+                    <span class="lbl">AI CONFIDENCE:</span>
+                    <strong class="val text-accent" id="fusionOutcomeConf">94%</strong>
+                  </div>
+                  <div class="outcome-col">
+                    <span class="lbl">CLASSIFICATION:</span>
+                    <strong class="val text-red" id="fusionOutcomeClass">🔴 CRITICAL</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Page 4 Extra Mounts: Data Quality Pipeline, Spatial Evidence, and AI Architecture -->
+          <div class="mt-4" id="fusionSpatialEvidenceMount"></div>
+          <div class="mt-4" id="fusionDataQualityMount"></div>
+          <div class="mt-4" id="fusionWhyTrustMount"></div>
+          <div class="mt-4" id="fusionAiArchitectureMount"></div>
+
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- PAGE 5: RISK ANALYSIS -->
+      <!-- ============================================================ -->
+      <section class="tab-pane" id="tab-risk-analysis">
+        <div class="risk-analysis-page-container">
+          <div class="page-header-box sonic-glass-panel">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+              <div>
+                <h2 class="page-title">EXPLAINABLE AI RISK ANALYSIS</h2>
+                <p class="page-subtitle">Detailed Geotechnical Causality Chain &bull; Progression Forecasting &bull; Safety Directive</p>
+              </div>
+              <div style="display:flex; gap:8px;">
+                <button class="btn btn-sm btn-outline" id="btnExportRiskGeoJson"><i data-lucide="map" class="icon-xs"></i> Export GIS GeoJSON</button>
+                <button class="btn btn-sm btn-primary" id="btnRaExportReport"><i data-lucide="download" class="icon-xs"></i> Form-VI Compliance PDF</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Top 4 Summary Cards -->
+          <div class="risk-page-summary-grid mt-4">
+            <div class="risk-top-card sonic-glass-panel">
+              <span class="card-label">RISK LEVEL</span>
+              <div class="card-val text-red" id="raRiskLevel">🔴 CRITICAL</div>
+              <span class="card-sub">Level 4 DGMS Alert</span>
+            </div>
+            <div class="risk-top-card sonic-glass-panel">
+              <span class="card-label">RISK SCORE</span>
+              <div class="card-val text-red" id="raRiskScore">87%</div>
+              <span class="card-sub">Dynamic Evidence Sum</span>
+            </div>
+            <div class="risk-top-card sonic-glass-panel">
+              <span class="card-label">AI CONFIDENCE</span>
+              <div class="card-val text-accent" id="raConfidence">94%</div>
+              <span class="card-sub">Multi-Sensor Validation</span>
+            </div>
+            <div class="risk-top-card sonic-glass-panel">
+              <span class="card-label">PROGRESSION TREND</span>
+              <div class="card-val text-red" id="raTrend">INCREASING</div>
+              <span class="card-sub">Accelerated Strata Sinking</span>
+            </div>
+          </div>
+
+          <!-- Mount: Detailed Multi-Dimensional Risk Breakdown -->
+          <div class="mt-4" id="raRiskBreakdownMount"></div>
+
+          <!-- Mount: Spatial Evidence & Hazard Cluster -->
+          <div class="mt-4" id="raSpatialEvidenceMount"></div>
+
+          <!-- Mount: Explainable AI "Why Trust This Alert" -->
+          <div class="mt-4" id="raWhyTrustMount"></div>
+
+          <!-- Mount: AI Confidence, Model Health & Uncertainty -->
+          <div class="mt-4" id="raConfidenceMount"></div>
+
+          <!-- Mount: Risk Progression Timeline -->
+          <div class="mt-4" id="raRiskTimelineMount"></div>
+
+          <!-- Why Was This Alert Generated? (Causal Chain) -->
+          <div class="causal-chain-panel sonic-glass-panel mt-4">
+            <div class="panel-heading">
+              <i data-lucide="help-circle" class="icon-sm text-yellow"></i>
+              <h3>WHY WAS THIS ALERT GENERATED?</h3>
+            </div>
+            <div class="causal-steps-list mt-3">
+              <div class="causal-item">
+                <div class="c-num">1</div>
+                <div class="c-content">
+                  <strong>Ground displacement increased above baseline</strong>
+                  <p>Surface subsidence gauges in Sector A17 recorded 12.4 mm displacement exceeding 4.2 mm baseline.</p>
+                </div>
+              </div>
+              <div class="causal-item">
+                <div class="c-num">2</div>
+                <div class="c-content">
+                  <strong>Tilt measurements show continuous increase</strong>
+                  <p>Inclinometers registered 4.8° unilateral slope divergence above subterranean extraction boundary.</p>
+                </div>
+              </div>
+              <div class="causal-item">
+                <div class="c-num">3</div>
+                <div class="c-content">
+                  <strong>Vibration sensors detected unusual strata fracture activity</strong>
+                  <p>Micro-seismic accelerometer cluster flagged 6.2 mm/s amplitude characteristic of main roof caving.</p>
+                </div>
+              </div>
+              <div class="causal-item">
+                <div class="c-num">4</div>
+                <div class="c-content">
+                  <strong>Crack width gauge expanded significantly</strong>
+                  <p>Tension crack sensor MSN-024 detected 5.8 mm opening along the northern perimeter haulage route.</p>
+                </div>
+              </div>
+              <div class="causal-item">
+                <div class="c-num">5</div>
+                <div class="c-content">
+                  <strong>Multiple independent sensor nodes confirmed the pattern</strong>
+                  <p>Cross-sensor Bayesian evidence fusion confirmed true geomechanical risk (Cross correlation: 0.91).</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Interpretation, Forecast & Action Row -->
+          <div class="risk-lower-grid mt-4">
+            <!-- AI Interpretation -->
+            <div class="risk-box sonic-glass-panel">
+              <div class="panel-heading">
+                <i data-lucide="file-text" class="icon-sm text-accent"></i>
+                <h3>AI INTERPRETATION</h3>
+              </div>
+              <p class="interpretation-text mt-3" id="raInterpretationText">
+                The combined multi-sensor evidence indicates progressive strata delamination and accelerated ground subsidence directly above Longwall Panel A17 (Depth: 185m). Surface tensile strain has exceeded the elastic limit of overburden rock mass.
+              </p>
+            </div>
+
+            <!-- Predicted Progression Table -->
+            <div class="risk-box sonic-glass-panel">
+              <div class="panel-heading">
+                <i data-lucide="trending-up" class="icon-sm text-purple"></i>
+                <h3>PREDICTED PROGRESSION</h3>
+              </div>
+              <div class="progression-table mt-3">
+                <div class="prog-row"><span>Current (T=0):</span> <strong class="text-accent">12.4 mm</strong></div>
+                <div class="prog-row"><span>6 Hours:</span> <strong class="text-yellow">17.8 mm</strong></div>
+                <div class="prog-row"><span>12 Hours:</span> <strong class="text-orange">23.1 mm</strong></div>
+                <div class="prog-row"><span>24 Hours:</span> <strong class="text-red">31.6 mm</strong></div>
+              </div>
+            </div>
+
+            <!-- Recommended Action -->
+            <div class="risk-box sonic-glass-panel action-box">
+              <div class="panel-heading">
+                <i data-lucide="shield-alert" class="icon-sm text-red"></i>
+                <h3>RECOMMENDED ACTION</h3>
+              </div>
+              <p class="action-text mt-3" id="raActionText">
+                Immediate field verification and safety assessment recommended. Restrict heavy machinery access on Panel A17 perimeter roadway and initiate Colliery Evacuation Protocol.
+              </p>
+              <button class="btn btn-sm btn-danger-pulse mt-3" id="btnRaDispatch"><i data-lucide="send" class="icon-xs"></i> Dispatch Safety Inspection Team</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- PAGE 6: ALERTS & INCIDENTS -->
+      <!-- ============================================================ -->
+      <section class="tab-pane" id="tab-alerts">
+        <div class="alerts-page-container">
+          <div class="page-header-box sonic-glass-panel">
+            <h2 class="page-title">FOUR-COLOUR EARLY WARNING ALERTS &amp; WORKFLOW</h2>
+            <p class="page-subtitle">Real-Time Threat Management &bull; Physical IoT Beacons &bull; Multi-Stage Incident Workflow</p>
+          </div>
+
+          <!-- Mount: Physical 4-Colour Alert Beacon -->
+          <div class="mt-4" id="alertsPhysicalBeaconMount"></div>
+
+          <!-- Mount: Full Alert Escalation Workflow Component -->
+          <div class="mt-4" id="alertsWorkflowMount"></div>
+
+          <!-- Active Threat Cards -->
+          <div class="active-alerts-cards-grid mt-4">
+            <div class="threat-card critical sonic-glass-panel">
+              <div class="threat-header">
+                <span class="threat-badge red">🔴 CRITICAL</span>
+                <span class="threat-time">20:45:30</span>
+              </div>
+              <div class="threat-body">
+                <h4 class="threat-zone">Longwall Panel A17</h4>
+                <div class="threat-meta">Risk Score: <strong class="text-red">87%</strong> &bull; Confidence: <strong>94%</strong></div>
+                <p class="threat-msg">Multi-sensor confirmation of accelerated subsidence and crack opening (5.8 mm).</p>
+              </div>
+              <div class="threat-footer">
+                <button class="btn btn-xs btn-outline btn-ack">Acknowledge</button>
+                <button class="btn btn-xs btn-danger-pulse btn-dispatch-action">Dispatch Team</button>
+              </div>
+            </div>
+
+            <div class="threat-card high-risk sonic-glass-panel">
+              <div class="threat-header">
+                <span class="threat-badge orange">🟠 HIGH RISK</span>
+                <span class="threat-time">20:31:12</span>
+              </div>
+              <div class="threat-body">
+                <h4 class="threat-zone">Goaf Barrier Panel A12</h4>
+                <div class="threat-meta">Risk Score: <strong class="text-orange">68%</strong> &bull; Confidence: <strong>89%</strong></div>
+                <p class="threat-msg">Elevated micro-seismic vibration activity detected in cluster MSN-055 to MSN-062.</p>
+              </div>
+              <div class="threat-footer">
+                <button class="btn btn-xs btn-outline btn-ack">Acknowledge</button>
+                <button class="btn btn-xs btn-outline">Inspect</button>
+              </div>
+            </div>
+
+            <div class="threat-card caution sonic-glass-panel">
+              <div class="threat-header">
+                <span class="threat-badge yellow">🟡 CAUTION</span>
+                <span class="threat-time">20:15:05</span>
+              </div>
+              <div class="threat-body">
+                <h4 class="threat-zone">Depillaring Sector Panel A08</h4>
+                <div class="threat-meta">Risk Score: <strong class="text-yellow">42%</strong> &bull; Confidence: <strong>85%</strong></div>
+                <p class="threat-msg">Minor tilt deviation (+1.2°) over abandoned pillar section.</p>
+              </div>
+              <div class="threat-footer">
+                <button class="btn btn-xs btn-outline btn-ack">Acknowledge</button>
+                <button class="btn btn-xs btn-outline">Monitor</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Alert History Table -->
+          <div class="alert-history-panel sonic-glass-panel mt-4">
+            <div class="panel-heading">
+              <i data-lucide="history" class="icon-sm text-accent"></i>
+              <h3>ALERT INCIDENT HISTORY</h3>
+            </div>
+            <div class="table-responsive mt-3">
+              <table class="sonic-table">
+                <thead>
+                  <tr>
+                    <th>Time</th>
+                    <th>Zone</th>
+                    <th>Risk Level</th>
+                    <th>Risk Score</th>
+                    <th>Duration</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="alertHistoryTableBody">
+                  <!-- Injected via JavaScript -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- PAGE 7: HISTORICAL DATA -->
+      <!-- ============================================================ -->
+      <section class="tab-pane" id="tab-historical-data">
+        <div class="historical-page-container">
+          <div class="page-header-box sonic-glass-panel">
+            <div class="historical-header-left">
+              <h2 class="page-title">HISTORICAL TELEMETRY &amp; ANOMALY ARCHIVE</h2>
+              <p class="page-subtitle">Long-Term Geotechnical Deformation Trends &bull; Baseline Deviation Analysis</p>
+            </div>
+            <!-- Timeframe and Sensor Filter Controls -->
+            <div class="history-filter-controls">
+              <select class="sonic-select" id="historySensorSelect">
+                <option value="displacement">Displacement History (mm)</option>
+                <option value="tilt">Tilt / Inclination History (°)</option>
+                <option value="vibration">Vibration History (mm/s)</option>
+                <option value="crack">Crack Opening History (mm)</option>
+                <option value="strain">Tensile Strain History (µε)</option>
+              </select>
+
+              <div class="timeframe-btn-group" id="timeframeButtonGroup">
+                <button class="btn-timeframe" data-time="1h">Last 1h</button>
+                <button class="btn-timeframe" data-time="6h">Last 6h</button>
+                <button class="btn-timeframe active" data-time="24h">Last 24h</button>
+                <button class="btn-timeframe" data-time="1w">Last Week</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Historical Chart Container -->
+          <div class="historical-chart-wrap sonic-glass-panel mt-4">
+            <div class="historical-chart-holder">
+              <canvas id="historicalChartCanvas"></canvas>
+            </div>
+          </div>
+
+          <!-- Historical Metrics Summary -->
+          <div class="hist-summary-grid mt-4">
+            <div class="hist-stat-card sonic-glass-panel">
+              <span class="lbl">Baseline Threshold</span>
+              <strong class="val text-success" id="histStatBase">4.2 mm</strong>
+            </div>
+            <div class="hist-stat-card sonic-glass-panel">
+              <span class="lbl">Peak Recorded Value</span>
+              <strong class="val text-red" id="histStatPeak">12.4 mm</strong>
+            </div>
+            <div class="hist-stat-card sonic-glass-panel">
+              <span class="lbl">Anomalies Detected</span>
+              <strong class="val text-yellow" id="histStatAnomalies">14 Events</strong>
+            </div>
+            <div class="hist-stat-card sonic-glass-panel">
+              <span class="lbl">Mean Rate of Sinking</span>
+              <strong class="val text-accent" id="histStatRate">0.48 mm/hr</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- PAGE 8: AI PREDICTION -->
+      <!-- ============================================================ -->
+      <section class="tab-pane" id="tab-prediction">
+        <div class="prediction-page-container">
+          <div class="page-header-box sonic-glass-panel">
+            <h2 class="page-title">AI SUBSIDENCE PREDICTION</h2>
+            <p class="page-subtitle">Multi-Horizon Autoregressive Neural Network &bull; 48-Hour Deformation Forecast</p>
+          </div>
+
+          <!-- AI Prediction Disclaimer Banner -->
+          <div class="prediction-disclaimer-banner mt-3">
+            <i data-lucide="info" class="icon-sm text-accent"></i>
+            <span><strong>AI PREDICTION:</strong> This data represents a model forecast computed from multi-sensor evidence vectors and geotechnical strata physics. It is not an actual sensor measurement.</span>
+          </div>
+
+          <!-- Forecast Metric Cards -->
+          <div class="prediction-metric-grid mt-4">
+            <div class="pred-card current sonic-glass-panel">
+              <span class="pred-label">CURRENT DISPLACEMENT</span>
+              <div class="pred-value text-accent" id="predValCurrent">12.4 mm</div>
+              <span class="pred-sub">Measured at T=0</span>
+            </div>
+
+            <div class="pred-card sonic-glass-panel">
+              <span class="pred-label">PREDICTED: 6 HOURS</span>
+              <div class="pred-value text-yellow" id="predVal6h">17.8 mm</div>
+              <span class="pred-sub">+43.5% Deformation</span>
+            </div>
+
+            <div class="pred-card sonic-glass-panel">
+              <span class="pred-label">PREDICTED: 12 HOURS</span>
+              <div class="pred-value text-orange" id="predVal12h">23.1 mm</div>
+              <span class="pred-sub">+86.2% Deformation</span>
+            </div>
+
+            <div class="pred-card critical sonic-glass-panel">
+              <span class="pred-label">PREDICTED: 24 HOURS</span>
+              <div class="pred-value text-red" id="predVal24h">31.6 mm</div>
+              <span class="pred-sub">+154.8% Deformation</span>
+            </div>
+          </div>
+
+          <!-- Prediction Forecast Chart -->
+          <div class="prediction-chart-wrap sonic-glass-panel mt-4">
+            <div class="panel-heading">
+              <i data-lucide="trending-up" class="icon-sm text-purple"></i>
+              <h3>48-HOUR MULTI-HORIZON PREDICTION PROFILE &amp; 95% CONFIDENCE BAND</h3>
+            </div>
+            <div class="pred-chart-holder mt-3">
+              <canvas id="predictionChartCanvas"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- PAGE 9: SENSOR MANAGEMENT & MAINTENANCE -->
+      <!-- ============================================================ -->
+      <section class="tab-pane" id="tab-sensor-management">
+        <div class="sensor-mgmt-page-container">
+          <div class="page-header-box sonic-glass-panel">
+            <div class="header-titles">
+              <h2 class="page-title">SENSOR FLEET &amp; MAINTENANCE MANAGEMENT</h2>
+              <p class="page-subtitle">132 Surface Mesh Nodes &bull; Lifecycle Health &bull; Calibration Schedules &bull; Technician Assignment</p>
+            </div>
+            <div class="mgmt-search-filters">
+              <input type="text" class="sonic-input" id="sensorSearchInput" placeholder="Search Sensor ID, Technician or Zone (e.g. MSN-024, A17, Mukherjee)...">
+              <select class="sonic-select" id="sensorFilterZone">
+                <option value="ALL">All Zones</option>
+                <option value="A17">Panel A17 (Active Working Seam)</option>
+                <option value="A12">Panel A12 (Goaf Barrier)</option>
+                <option value="A08">Panel A08 (Depillaring)</option>
+                <option value="B04">Panel B04 (South Incline)</option>
+              </select>
+              <select class="sonic-select" id="sensorFilterStatus">
+                <option value="ALL">All Hardware Status</option>
+                <option value="ONLINE">🟢 Online (128)</option>
+                <option value="WARNING">🟡 Warning (3)</option>
+                <option value="OFFLINE">🔴 Offline (1)</option>
+              </select>
+              <select class="sonic-select" id="sensorFilterMaint">
+                <option value="ALL">All Maintenance Status</option>
+                <option value="HEALTHY">🟢 Healthy (124)</option>
+                <option value="MAINTENANCE DUE">🟡 Maintenance Due (4)</option>
+                <option value="MAINTENANCE OVERDUE">🟠 Overdue (2)</option>
+                <option value="REPLACEMENT REQUIRED">🔴 Replacement Required (1)</option>
+                <option value="UNDER MAINTENANCE">🔵 Under Maintenance (1)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Sensor Maintenance Summary 5-Card Banner -->
+          <div class="maintenance-summary-grid mt-4">
+            <div class="maint-card sonic-glass-panel total">
+              <div class="maint-card-hdr"><i data-lucide="cpu" class="icon-xs text-accent"></i><span>TOTAL SENSORS</span></div>
+              <div class="maint-val text-accent" id="maintTotalVal">132</div>
+              <span class="maint-sub">Surface Mesh Network Fleet</span>
+            </div>
+
+            <div class="maint-card sonic-glass-panel healthy">
+              <div class="maint-card-hdr"><i data-lucide="check-circle-2" class="icon-xs text-success"></i><span>HEALTHY</span></div>
+              <div class="maint-val text-success" id="maintHealthyVal">124</div>
+              <span class="maint-sub">Calibrated &amp; Operating Normal</span>
+            </div>
+
+            <div class="maint-card sonic-glass-panel due">
+              <div class="maint-card-hdr"><i data-lucide="clock" class="icon-xs text-yellow"></i><span>MAINTENANCE DUE</span></div>
+              <div class="maint-val text-yellow" id="maintDueVal">4</div>
+              <span class="maint-sub">Scheduled in Next 14 Days</span>
+            </div>
+
+            <div class="maint-card sonic-glass-panel overdue">
+              <div class="maint-card-hdr"><i data-lucide="alert-triangle" class="icon-xs text-orange"></i><span>OVERDUE</span></div>
+              <div class="maint-val text-orange" id="maintOverdueVal">2</div>
+              <span class="maint-sub">Calibration Cycle Expired</span>
+            </div>
+
+            <div class="maint-card sonic-glass-panel replace">
+              <div class="maint-card-hdr"><i data-lucide="wrench" class="icon-xs text-red"></i><span>REPLACEMENT REQUIRED</span></div>
+              <div class="maint-val text-red" id="maintReplaceVal">1</div>
+              <span class="maint-sub">Hardware Battery / Transceiver Fault</span>
+            </div>
+          </div>
+
+          <!-- Mount: Fleet Sensor Health Diagnostics -->
+          <div class="mt-4" id="fleetSensorHealthMount"></div>
+
+          <!-- Sensor Table with Maintenance Columns -->
+          <div class="sensor-table-wrap sonic-glass-panel mt-4">
+            <div class="panel-heading" style="padding:14px 18px 0 18px;">
+              <i data-lucide="layers" class="icon-sm text-accent"></i>
+              <h3>ACTIVE SENSOR NODES &amp; STATUTORY MAINTENANCE LOG</h3>
+            </div>
+            <div class="table-responsive mt-2">
+              <table class="sonic-table">
+                <thead>
+                  <tr>
+                    <th>Sensor ID</th>
+                    <th>Zone</th>
+                    <th>Displacement</th>
+                    <th>Tilt</th>
+                    <th>Battery</th>
+                    <th>Last Maintenance</th>
+                    <th>Next Maintenance</th>
+                    <th>Maintenance Status</th>
+                    <th>Technician Assigned</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="sensorFleetTableBody">
+                  <!-- Injected via JavaScript -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- ============================================================ -->
+      <!-- PAGE 10: SAFETY REPORTS & CRITICAL INCIDENT REPORT -->
+      <!-- ============================================================ -->
+      <section class="tab-pane" id="tab-reports">
+        <div class="reports-page-container">
+          <div class="page-header-box sonic-glass-panel">
+            <h2 class="page-title">GEOTECHNICAL SAFETY &amp; HAZARD INCIDENT REPORTS</h2>
+            <p class="page-subtitle">Standardized Geotechnical Compliance, Structural Audits &amp; Critical Subsidence Incident Dossiers</p>
+          </div>
+
+          <!-- Featured Critical Incident Report Card -->
+          <div class="critical-incident-report-card sonic-glass-panel mt-4">
+            <div class="panel-heading">
+              <div class="inc-title-wrap">
+                <i data-lucide="shield-alert" class="icon-md text-red"></i>
+                <div>
+                  <h3 class="text-red">CRITICAL INCIDENT REPORT: INC-2026-A17-088</h3>
+                  <span class="inc-sub-label">Comprehensive Geomechanical Causality, Multi-Sensor Evidence &amp; Action Record</span>
+                </div>
+              </div>
+              <div class="incident-export-buttons ml-auto" style="display:flex; flex-wrap:wrap; gap:6px;">
+                <button class="btn btn-xs btn-primary" id="btnIncidentExportPdf"><i data-lucide="download" class="icon-xxs"></i> Export PDF</button>
+                <button class="btn btn-xs btn-outline" id="btnIncidentExportCsv"><i data-lucide="file-spreadsheet" class="icon-xxs"></i> CSV Data</button>
+                <button class="btn btn-xs btn-outline" id="btnIncidentExportJson"><i data-lucide="code" class="icon-xxs"></i> JSON Dossier</button>
+                <button class="btn btn-xs btn-outline" id="btnIncidentExportPng"><i data-lucide="image" class="icon-xxs"></i> PNG Risk Map</button>
+                <button class="btn btn-xs btn-outline" id="btnIncidentExportGeoJson"><i data-lucide="map" class="icon-xxs"></i> GeoJSON Zone</button>
+              </div>
+            </div>
+
+            <!-- Incident Metadata Grid -->
+            <div class="incident-meta-grid mt-3">
+              <div class="inc-stat-item"><span>Incident ID:</span> <strong>INC-2026-A17-088</strong></div>
+              <div class="inc-stat-item"><span>Survey Region:</span> <strong>Raniganj Region</strong></div>
+              <div class="inc-stat-item"><span>Sector:</span> <strong>Sector A17 (Zone #4)</strong></div>
+              <div class="inc-stat-item"><span>Date &amp; Time:</span> <strong class="text-accent" id="incLiveTime">2026-09-11 20:45:21 IST</strong></div>
+              <div class="inc-stat-item"><span>Threat Level:</span> <strong class="text-red">🔴 CRITICAL (Level 4 Safety)</strong></div>
+              <div class="inc-stat-item"><span>Risk Score:</span> <strong class="text-red">87%</strong></div>
+              <div class="inc-stat-item"><span>AI Confidence:</span> <strong class="text-accent">94% (Evidence-Based)</strong></div>
+              <div class="inc-stat-item"><span>Model Uncertainty:</span> <strong>&plusmn;4.2%</strong></div>
+              <div class="inc-stat-item"><span>Affected Sensors:</span> <strong class="text-red">5 Nodes (TGX-020, 022, 024, 026, 028)</strong></div>
+              <div class="inc-stat-item"><span>Estimated Affected Area:</span> <strong class="text-yellow">245 m² (SE Azimuth 135°)</strong></div>
+            </div>
+
+            <!-- Multi-Modal Evidence & Timeline Tabs / Sections -->
+            <div class="incident-evidence-sections-grid mt-3">
+              <div class="inc-ev-box sonic-glass-panel">
+                <div class="inc-ev-hdr"><i data-lucide="git-merge" class="icon-xs text-purple"></i><strong>Multi-Sensor Evidence Vectors</strong></div>
+                <ul class="inc-ev-list mt-2">
+                  <li>&bull; <strong>Displacement:</strong> 12.4 mm (+195% over 4.2mm baseline limit)</li>
+                  <li>&bull; <strong>Tilt Inclinometer:</strong> 4.8° (+92% slope divergence)</li>
+                  <li>&bull; <strong>Crack Aperture:</strong> 5.8 mm (+1060% tensile extension)</li>
+                  <li>&bull; <strong>Tensile Strain:</strong> 840 µε (+300% rock mass yield)</li>
+                  <li>&bull; <strong>Micro-Vibration:</strong> 6.2 mm/s (Subsurface strata fracture signature)</li>
+                </ul>
+              </div>
+
+              <div class="inc-ev-box sonic-glass-panel">
+                <div class="inc-ev-hdr"><i data-lucide="map-pin" class="icon-xs text-accent"></i><strong>Spatial &amp; Historical Evidence</strong></div>
+                <ul class="inc-ev-list mt-2">
+                  <li>&bull; <strong>Spatial Clustering:</strong> 91% neighbor correlation across 85m buffer</li>
+                  <li>&bull; <strong>Temporal Progression:</strong> Monotonic acceleration across 3 cycles</li>
+                  <li>&bull; <strong>Historical Match:</strong> 91% match with 2024 Sector A14 strata delamination</li>
+                  <li>&bull; <strong>48h Forward Forecast:</strong> 31.6 mm critical subsidence trough</li>
+                </ul>
+              </div>
+
+              <div class="inc-ev-box sonic-glass-panel">
+                <div class="inc-ev-hdr"><i data-lucide="send" class="icon-xs text-yellow"></i><strong>Notifications &amp; Physical Alerts</strong></div>
+                <ul class="inc-ev-list mt-2">
+                  <li>&bull; <strong>Web Dashboard:</strong> Broadcast PUSH Delivered</li>
+                  <li>&bull; <strong>SMS Router:</strong> Sent to 4 Safety Officers (Delivered)</li>
+                  <li>&bull; <strong>Email Dispatch:</strong> Dossier dispatched to Geotechnical Safety Office</li>
+                  <li>&bull; <strong>Physical ESP32 Beacons:</strong> Active RED Flashing Light</li>
+                  <li>&bull; <strong>Acoustic Siren:</strong> 110 dB Evacuation Alarm Active</li>
+                </ul>
+              </div>
+
+              <div class="inc-ev-box sonic-glass-panel">
+                <div class="inc-ev-hdr"><i data-lucide="shield-check" class="icon-xs text-success"></i><strong>Safety Actions &amp; Resolution</strong></div>
+                <ul class="inc-ev-list mt-2">
+                  <li>&bull; <strong>Acknowledgment:</strong> Safety Director at 20:46:10</li>
+                  <li>&bull; <strong>Field Verification:</strong> Emergency Response Team Alpha deployed</li>
+                  <li>&bull; <strong>Actions Taken:</strong> Transport routes diverted, perimeter cordoned</li>
+                  <li>&bull; <strong>Final Resolution:</strong> Strata stabilization &amp; safety clearance</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Standard Safety Reports Grid -->
+          <div class="reports-cards-grid mt-4">
+            <div class="report-card sonic-glass-panel">
+              <div class="rep-icon"><i data-lucide="file-text" class="icon-md text-accent"></i></div>
+              <h4 class="rep-title">Daily Ground Safety Report</h4>
+              <p class="rep-desc">Comprehensive 24-hour summary of strata displacement, tilt deviations, and mesh telemetry.</p>
+              <div class="rep-actions">
+                <button class="btn btn-sm btn-outline btn-view-report" data-rep="daily">View</button>
+                <button class="btn btn-sm btn-primary btn-download-pdf" data-rep="daily"><i data-lucide="download" class="icon-xs"></i> PDF</button>
+              </div>
+            </div>
+
+            <div class="report-card sonic-glass-panel">
+              <div class="rep-icon"><i data-lucide="shield-alert" class="icon-md text-red"></i></div>
+              <h4 class="rep-title">Weekly Risk Assessment Report</h4>
+              <p class="rep-desc">Longitudinal analysis of subsidence trough progression and multi-sensor fusion confidence.</p>
+              <div class="rep-actions">
+                <button class="btn btn-sm btn-outline btn-view-report" data-rep="weekly">View</button>
+                <button class="btn btn-sm btn-primary btn-download-pdf" data-rep="weekly"><i data-lucide="download" class="icon-xs"></i> PDF</button>
+              </div>
+            </div>
+
+            <div class="report-card sonic-glass-panel">
+              <div class="rep-icon"><i data-lucide="cpu" class="icon-md text-purple"></i></div>
+              <h4 class="rep-title">Sensor Health &amp; Mesh Infrastructure</h4>
+              <p class="rep-desc">Battery levels, LoRa RSSI, packet delivery success, and node maintenance logs.</p>
+              <div class="rep-actions">
+                <button class="btn btn-sm btn-outline btn-view-report" data-rep="health">View</button>
+                <button class="btn btn-sm btn-primary btn-download-pdf" data-rep="health"><i data-lucide="download" class="icon-xs"></i> PDF</button>
+              </div>
+            </div>
+
+            <div class="report-card sonic-glass-panel">
+              <div class="rep-icon"><i data-lucide="trending-up" class="icon-md text-yellow"></i></div>
+              <h4 class="rep-title">Subsidence Prediction &amp; Strata Forecast</h4>
+              <p class="rep-desc">48-hour forward projection of surface tensile cracks and ground sinking.</p>
+              <div class="rep-actions">
+                <button class="btn btn-sm btn-outline btn-view-report" data-rep="prediction">View</button>
+                <button class="btn btn-sm btn-primary btn-download-pdf" data-rep="prediction"><i data-lucide="download" class="icon-xs"></i> PDF</button>
+              </div>
+            </div>
+
+            <div class="report-card sonic-glass-panel">
+              <div class="rep-icon"><i data-lucide="bell" class="icon-md text-orange"></i></div>
+              <h4 class="rep-title">Alert &amp; Incident History Audit</h4>
+              <p class="rep-desc">Four-colour graded early warnings with acknowledgement timestamps and engineer actions.</p>
+              <div class="rep-actions">
+                <button class="btn btn-sm btn-outline btn-view-report" data-rep="alerts">View</button>
+                <button class="btn btn-sm btn-primary btn-download-pdf" data-rep="alerts"><i data-lucide="download" class="icon-xs"></i> PDF</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- PAGE 11: SETTINGS & SYSTEM CONFIGURATION -->
+      <!-- ============================================================ -->
+      <section class="tab-pane" id="tab-settings">
+        <div class="settings-page-container">
+          <div class="page-header-box sonic-glass-panel">
+            <h2 class="page-title">SYSTEM CONFIGURATION &amp; AI SETTINGS</h2>
+            <p class="page-subtitle">Geotechnical Strata Calibration &bull; Risk Weights &bull; Network &bull; Alert Routing &bull; Statutory Audit</p>
+          </div>
+
+          <div class="settings-grid mt-4">
+            <!-- 1. Sector Settings -->
+            <div class="settings-card sonic-glass-panel">
+              <div class="panel-heading">
+                <i data-lucide="map-pin" class="icon-sm text-accent"></i>
+                <h3>1. GEOTECHNICAL SECTOR SETTINGS</h3>
+              </div>
+              <div class="settings-form mt-3">
+                <div class="form-group">
+                  <label>Region / Zone Name</label>
+                  <input type="text" class="sonic-input" id="settingMineName" value="Raniganj Survey Region - Sector A17">
+                </div>
+                <div class="form-group">
+                  <label>Sector Identifier</label>
+                  <input type="text" class="sonic-input" value="Sector A17 (Zone #4)">
+                </div>
+                <div class="form-group">
+                  <label>GPS Coordinates</label>
+                  <input type="text" class="sonic-input" value="Lat: 23.6845° N, Lng: 86.9532° E">
+                </div>
+                <div class="form-group">
+                  <label>Subsurface Depth Level (Meters)</label>
+                  <input type="number" class="sonic-input" id="settingMineDepth" value="185">
+                </div>
+                <div class="form-group">
+                  <label>Monitoring Category</label>
+                  <input type="text" class="sonic-input" value="Subsurface Cavity &amp; Surface Subsidence">
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. AI Engine & Fusion Settings -->
+            <div class="settings-card sonic-glass-panel">
+              <div class="panel-heading">
+                <i data-lucide="brain-circuit" class="icon-sm text-purple"></i>
+                <h3>2. AI ENGINE &amp; FUSION SETTINGS</h3>
+              </div>
+              <div class="settings-form mt-3">
+                <div class="form-group">
+                  <label>AI Prediction Architecture</label>
+                  <select class="sonic-select" id="settingAiModel">
+                    <option value="onboard" selected>Hybrid Prediction Engine (Geotechnical + Autoregressive)</option>
+                    <option value="gemini-2.0-flash">Cloud-Assisted LLM Reasoning (Backend Secure Proxy)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Minimum Confidence Threshold (%)</label>
+                  <input type="number" class="sonic-input" value="85">
+                </div>
+                <div class="form-group">
+                  <label>Evidence Fusion Weights</label>
+                  <div style="font-size:0.75rem; color:#94a3b8; line-height:1.6;">
+                    Displacement: <strong>31%</strong> | Tilt: <strong>24%</strong> | Strain: <strong>22%</strong> | Vib: <strong>15%</strong> | Crack: <strong>8%</strong>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Prediction Forecast Horizon</label>
+                  <select class="sonic-select">
+                    <option value="48">48 Hours (Standard)</option>
+                    <option value="24">24 Hours</option>
+                    <option value="72">72 Hours</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. Network & LoRa Mesh Settings -->
+            <div class="settings-card sonic-glass-panel">
+              <div class="panel-heading">
+                <i data-lucide="radio" class="icon-sm text-accent"></i>
+                <h3>3. WIRELESS MESH SETTINGS</h3>
+              </div>
+              <div class="settings-form mt-3">
+                <div class="form-group">
+                  <label>LoRa Frequency Band</label>
+                  <select class="sonic-select">
+                    <option value="868" selected>868.1 MHz (India / EU Standard)</option>
+                    <option value="915">915.0 MHz (US Standard)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Node Sampling Frequency (Seconds)</label>
+                  <input type="number" class="sonic-input" value="2">
+                </div>
+                <div class="form-group">
+                  <label>Transmission Broadcast Interval (Seconds)</label>
+                  <input type="number" class="sonic-input" value="5">
+                </div>
+                <div class="form-group">
+                  <label>Max Hop Retry Count</label>
+                  <input type="number" class="sonic-input" value="3">
+                </div>
+                <div class="form-group">
+                  <label>Central Gateway IP &amp; Port</label>
+                  <input type="text" class="sonic-input" value="192.168.10.1:8080">
+                </div>
+              </div>
+            </div>
+
+            <!-- 4. Alert & Escalation Settings -->
+            <div class="settings-card sonic-glass-panel">
+              <div class="panel-heading">
+                <i data-lucide="bell" class="icon-sm text-red"></i>
+                <h3>4. ALERT &amp; ESCALATION SETTINGS</h3>
+              </div>
+              <div class="settings-form mt-3">
+                <div class="form-group">
+                  <label>Four-Colour Classification</label>
+                  <div style="font-size:0.75rem; color:#94a3b8;">
+                    🟢 Normal (&le; 25%) &bull; 🟡 Caution (25-50%) &bull; 🟠 High (50-75%) &bull; 🔴 Critical (&gt; 75%)
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Alert Persistence / Hysteresis Confirmation</label>
+                  <input type="text" class="sonic-input" value="03:00 Minutes (4 Confirming Sensors)">
+                </div>
+                <div class="form-group">
+                  <label>Escalation Levels</label>
+                  <div style="font-size:0.75rem; color:#94a3b8;">
+                    L1: Field Operator &rarr; L2: Safety Officer &rarr; L3: Operations Director &rarr; L4: Emergency Response Team
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Active Notification Channels</label>
+                  <div style="font-size:0.75rem; color:#38bdf8;">
+                    ✓ Web Dashboard &bull; ✓ SMS &bull; ✓ Email &bull; ✓ Mobile Push &bull; ✓ Physical ESP32 Beacons &bull; ✓ Siren (110dB)
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 5. Data Retention & Sync Settings -->
+            <div class="settings-card sonic-glass-panel">
+              <div class="panel-heading">
+                <i data-lucide="database" class="icon-sm text-accent"></i>
+                <h3>5. DATA &amp; STORAGE SETTINGS</h3>
+              </div>
+              <div class="settings-form mt-3">
+                <div class="form-group">
+                  <label>Local Gateway Telemetry Cache</label>
+                  <input type="text" class="sonic-input" value="SQLite 3.42 / IndexedDB (100,000 Records)">
+                </div>
+                <div class="form-group">
+                  <label>Data Retention Period</label>
+                  <select class="sonic-select">
+                    <option value="365" selected>365 Days (Statutory Safety Mandate)</option>
+                    <option value="180">180 Days</option>
+                    <option value="730">2 Years</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Cloud Sync Policy</label>
+                  <input type="text" class="sonic-input" value="Auto-Sync on Network Recovery with SHA-256 Checksum">
+                </div>
+              </div>
+            </div>
+
+            <!-- 6. User Roles & RBAC Settings -->
+            <div class="settings-card sonic-glass-panel">
+              <div class="panel-heading">
+                <i data-lucide="user-check" class="icon-sm text-success"></i>
+                <h3>6. USER ACCESS CONTROL (RBAC)</h3>
+              </div>
+              <div class="settings-form mt-3">
+                <div class="form-group">
+                  <label>Current Authenticated Role</label>
+                  <input type="text" class="sonic-input" value="Chief Safety Officer (Full Operational Control)" readonly>
+                </div>
+                <div class="form-group">
+                  <label>Configured Roles</label>
+                  <div style="font-size:0.75rem; color:#94a3b8; line-height:1.6;">
+                    &bull; <strong>Chief Safety Officer:</strong> Full Acknowledgment &amp; Dispatch<br>
+                    &bull; <strong>Statutory Inspector:</strong> Safety Audit &amp; Assessment Read-Only<br>
+                    &bull; <strong>Geotechnical Engineer:</strong> Strata Threshold Calibration<br>
+                    &bull; <strong>Operations Director:</strong> Evacuation &amp; Emergency Command
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mount: Statutory Audit Log & Action Trail Component -->
+          <div class="mt-4" id="settingsAuditLogMount"></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Modal: Geotechnical Safety Report Modal -->
+  <div class="sonic-modal-backdrop" id="reportModalBackdrop">
+    <div class="sonic-modal-card sonic-glass-panel">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <i data-lucide="file-text" class="icon-sm text-accent"></i>
+          <h3 id="modalReportTitle">Ground Safety Assessment Report</h3>
+        </div>
+        <button class="btn-close-modal" id="btnCloseReportModal">&times;</button>
+      </div>
+      <div class="modal-body" id="modalReportContent">
+        <!-- Rendered markdown or report content -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" id="btnModalClose">Close</button>
+        <button class="btn btn-primary" id="btnModalDownloadPdf"><i data-lucide="download" class="icon-xs"></i> Download PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Emergency SOS Siren & Evacuation Alert -->
+  <div class="sonic-modal-backdrop" id="sosModalBackdrop">
+    <div class="sonic-modal-card sonic-glass-panel border-danger">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <i data-lucide="volume-2" class="icon-sm text-red"></i>
+          <h3 class="text-red">EMERGENCY SOS: SECTOR EVACUATION SIREN</h3>
+        </div>
+        <button class="btn-close-modal" id="btnCloseSosModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="sos-warning-box">
+          <div class="sos-icon-pulse"><i data-lucide="alert-triangle" class="icon-lg"></i></div>
+          <div class="sos-alert-text">
+            <h4>CRITICAL SUBSIDENCE ALERT DISPATCHED</h4>
+            <p>Siren activated across Sector A17 perimeter. Automated broadcast sent to Disaster Response Control &amp; Field Rescue Teams.</p>
+          </div>
+        </div>
+        <div class="sos-details-list mt-3">
+          <div>&bull; Sector: <strong>Raniganj Survey Region - Sector A17</strong></div>
+          <div>&bull; Ground Sinking: <strong>12.4 mm (T=0) &rarr; Projected 31.6 mm (24h)</strong></div>
+          <div>&bull; Instability Risk: <strong>CRITICAL (Level 4 Emergency)</strong></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" id="btnMuteSiren">Mute Siren</button>
+        <button class="btn btn-danger-pulse" id="btnConfirmEvacuate">Confirm Evacuation Order</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Node Diagnostics Modal -->
+  <div class="sonic-modal-backdrop" id="nodeModalBackdrop">
+    <div class="sonic-modal-card sonic-glass-panel">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <i data-lucide="cpu" class="icon-sm text-accent"></i>
+          <h3 id="diagNodeTitle">Node MSN-024 Diagnostics</h3>
+        </div>
+        <button class="btn-close-modal" id="btnCloseNodeModal">&times;</button>
+      </div>
+      <div class="modal-body" id="diagNodeBody">
+        <!-- Node detailed metrics -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" id="btnCloseDiag">Close</button>
+        <button class="btn btn-primary" id="btnRunDiagnostics">Run Calibration Check</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Real-Time Floating Notification Toast Container -->
+  <div id="sonicToastContainer" class="sonic-toast-container"></div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
