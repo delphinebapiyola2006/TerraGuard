@@ -1,9 +1,6 @@
 # Terra Guard - X 🚀
 ## AI-Enabled Low-Cost Real-Time Mine Subsidence Monitoring, Prediction & Early Warning System
 
-**Smart India Hackathon 2026**  
-**Problem Statement ID:** 26025  
-**Organization:** Ministry of Coal  
 **Department:** Coal India Limited (CIL)  
 **Category:** Hardware  
 **Theme:** Smart Automation  
@@ -14,7 +11,7 @@
 
 Traditional mine subsidence monitoring in Indian underground coalfields relies on periodic total station surveys, leveling pegs, or post-facto satellite InSAR passes which have multi-day latency and cannot prevent sudden catastrophic ground failures.
 
-**Terra Guard - X** introduces an indigenous, low-cost (< ₹1,800/node), real-time continuous monitoring platform consisting of:
+**Terra Guard - X** introduces an indigenous, low-cost (< ₹2,800/node), real-time continuous monitoring platform consisting of:
 1. **Wireless LoRa Surface Mesh Network (868 MHz ISM Band)** deployed over active underground coal panels (Raniganj, Jharia, Korba, Singrauli).
 2. **GPU-Accelerated 3D Subsurface Geological Digital Twin (Three.js 60 FPS)** with 360-degree rotation, procedural strata layers, longwall goaf void, dynamic Knothe subsidence trough sinkage deformation, and interactive cross-section slicing.
 3. **MineGeo-AI Geotechnical Engine (Google Gemini API & LSTM-Knothe Hybrid)**: Ingests multi-sensor tilt, displacement, vibration FFT, and crack aperture data to predict time-to-failure (TTF), dynamic basin progression, and automated DGMS statutory compliance directives.
@@ -73,8 +70,8 @@ Open your browser at `http://localhost:5173`.
 
 ---
 
-## 🏆 Key SIH 2026 Evaluation Highlights
-- **Hardware Low Cost:** Complete Bill of Materials (BOM) < ₹1,800 / node (Solar powered, 5+ years autonomy).
+## Key Evaluation Highlight
+- **Hardware Low Cost:** Complete Bill of Materials (BOM) < ₹2,800 / node (Solar powered, 5+ years autonomy).
 - **3D Digital Twin:** 360° rotation with zero lag, cross-section geological slicer, interactive node markers.
 - **DGMS Compliance:** Automated compliance checking against Indian Coal Mines Regulations 2017 & DGMS Circular No. 2 of 1974.
 - **Made in India:** Indigenous sensors and firmware for extreme coalfield conditions.
